@@ -6,6 +6,7 @@ use pQuery;
 use Data::Dumper;
 use WWW::Mechanize;
 use HTML::TableExtract;
+use Carp;
 
 my $site_url='http://tw.magv.com';
 my $login_url='https://ssl.magv.com/pay/MemberLogin.aspx?r=%2fpay%2fMemberCenter.aspx';
@@ -27,6 +28,7 @@ our $ua = WWW::Mechanize->new(
     env_proxy => 1,
     keep_alive => 1,
     timeout => 120,
+    onerror => undef,
 );
 
 sub login {
@@ -202,8 +204,8 @@ sub write_book_info {
 
 sub download {
 
-	my $archive;
 	my ($book_id, $book_ver, $book_date, $abs_img_dir, $h_name, $h_date) = @_;
+	my $archive;
 	
 	#mkdir
 	unless (-e "$book_id") {
@@ -223,12 +225,13 @@ sub download {
 		unless (-e "$folder/$target_file") {
 			$target_url = sprintf("$abs_img_dir$target_file", $count);
 			$ua->get("$target_url", ":content_file"=>"$folder/$target_file");
-			sleep 2;
+			last if ($ua->status == 404);
+			sleep 5;
 		}
 	}
 
 	#write_info
-	system("echo $h_name\n > $folder/info.txt; echo $h_date\n >> $folder/info.txt");
+	system("echo $h_name > $folder/info.txt; echo $h_date >> $folder/info.txt");
 
 	#zip
 	$archive = "$folder" . ".zip";
