@@ -91,13 +91,17 @@ sub search_book {
 	my $book_list; 		# Global bookname=>url list 
 	my $match_book_list;
 	my $count=0;
-
+	
 	if ($book_list == undef) { 
 		$book_list = list_all_mags();
 	}
 
+	unless( utf8::is_utf8($q_book_name) ) {
+		utf8::decode($q_book_name);
+	}
+	
 	foreach my $item (keys %$book_list) {
-		if ($item =~ /$q_book_name/) {
+		if ($item =~ m/$q_book_name/) {
 			$match_book_list->[$count]->{'name'} = $item;
 			$match_book_list->[$count++]->{'url'} = $book_list->{$item};
 		}
