@@ -51,6 +51,8 @@ switch ($command) {
 
 		# list the vers of book
 		if ( $#match_book_index==0 ) {	#only one match
+			# partial match
+
 			$item = shift @$match_book_list ;
 			if ( $item->{'url'} =~ m{mdid=([0-9]*)} ) {
 				$mdid=$1;
@@ -68,10 +70,39 @@ switch ($command) {
 			}
 		} else { 
 			print "More than one kind of magazines.\n";
+
+			foreach my $item (@$match_book_list) {
+
+				if ( $q_book_name eq $item->{'name'} ) {
+					# exactly match
+
+					$item = shift @$match_book_list ;
+					if ( $item->{'url'} =~ m{mdid=([0-9]*)} ) {
+						$mdid=$1;
+					}
+
+					$book_ver_info_page = list_book_vers_page($mdid, $pagecount);
+
+					while ( defined ($book_ver_info_page) ) {
+						foreach my $item (@$book_ver_info_page) {
+							push @$book_ver_info, $item;
+						}
+
+						$pagecount++;
+						$book_ver_info_page = list_book_vers_page($mdid, $pagecount);
+					} 
+				}
+			}
 		}
 
-		if ($q_book_ver=='all') {
+		if (defined $q_book_ver) {
+		} else {
+			$q_book_ver='all';
+		}
+
+		if ($q_book_ver eq 'all') {
 			foreach my $item (@$book_ver_info) {
+				print "Download Magv: " . "$item->{'h_name'}" . "$item->{'h_date'}" . "\n";
 				download( $item->{'book_id'},
 					$item->{'book_ver'},
 					$item->{'book_date'},
@@ -84,6 +115,7 @@ switch ($command) {
 			my $temp_query_ver = sprintf ("%03d", $q_book_ver);
 
 			foreach my $item (@$book_ver_info) {
+				print "Download Magv: " . "$item->{'h_name'}" . "$item->{'h_date'}" . "\n";
 				if ($item->{'book_ver'}=="$temp_query_ver") {
 					download( $item->{'book_id'},
 						$item->{'book_ver'},
