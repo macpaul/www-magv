@@ -206,6 +206,7 @@ sub download {
 
 	my ($book_id, $book_ver, $book_date, $abs_img_dir, $h_name, $h_date) = @_;
 	my $archive;
+	my $rand_num;
 	
 	#mkdir
 	unless (-e "$book_id") {
@@ -218,6 +219,12 @@ sub download {
 		mkdir ($folder, 0755);
 	}
 
+	#if zip exist then skip
+	$archive = "$folder" . ".zip";
+	if (-e "$archive") {
+		return;
+	}
+
 	#batchdownload
 	for ($count=1; $count<=$countmax; $count++) {
 		$target_file = sprintf("%03d.jpg", $count);
@@ -226,7 +233,11 @@ sub download {
 			$target_url = sprintf("$abs_img_dir$target_file", $count);
 			$ua->get("$target_url", ":content_file"=>"$folder/$target_file");
 			last if ($ua->status == 404);
-			sleep 5;
+
+			do {
+			        $rand_num=rand()*10;
+			} while ($rand_num<5);
+			sleep $rand_num;
 		}
 	}
 
